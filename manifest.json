@@ -3,10 +3,30 @@
   "dir": "ltr",
   "display": "standalone",
   "name": "Elifba",
+  "description": "Elifba harflerini rastgele soran sesli quiz oyunu",
   "orientation": "any",
   "scope": "/elif-ba/",
   "short_name": "Elifba",
   "start_url": "/elif-ba/elifba-quiz.html",
-  "theme_color": "#ffffff"
-  "description": "Elifba harflerini rastgele soran sesli öğrenci projesi quiz oyunu",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
 }
