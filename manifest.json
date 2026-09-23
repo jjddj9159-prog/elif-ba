@@ -4,8 +4,9 @@
   "display": "standalone",
   "name": "Elifba",
   "orientation": "any",
-  "scope": "/",
+  "scope": "/elif-ba/",
   "short_name": "Elifba",
-  "start_url": "/",
+  "start_url": "/elif-ba/elifba-quiz.html",
   "theme_color": "#ffffff"
+  "description": "Elifba harflerini rastgele soran sesli öğrenci projesi quiz oyunu",
 }
