@@ -1,0 +1,11 @@
+{
+  "background_color": "#1c8331",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Elifba",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "Elifba",
+  "start_url": "/",
+  "theme_color": "#ffffff"
+}
