@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Elifba</title>
+<style>
+:root{
+  --bg:#050b24; --bg2:#0c1a44; --panel:#0e1c4a; --gold:#f5c542; --gold-dim:#8a7327;
+  --ink:#f2ecd8; --ink-dim:#9aa4cc; --opt:#122a66; --opt-border:#2c4590;
+  --correct:#1f9e58; --wrong:#c1462f;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+html{height:100%; scroll-padding-top:env(safe-area-inset-top,0px);}
+*{box-sizing:border-box;}
+body{margin:0; min-height:100%; background:radial-gradient(circle at 50% -10%, var(--bg2) 0%, var(--bg) 60%); color:var(--ink);
+  font-family:"Segoe UI", system-ui, -apple-system, sans-serif; display:flex; justify-content:center; -webkit-tap-highlight-color:transparent;}
+.wrap{width:100%; max-width:480px; padding:22px 18px 28px; display:flex; flex-direction:column; gap:16px; min-height:100vh;}
+.screen{display:none; flex-direction:column; gap:16px; flex:1;}
+.screen.active{display:flex;}
+
+/* HOME */
+#home{align-items:center; justify-content:center; text-align:center; gap:26px;}
+.logo{font-size:3rem; font-weight:900; letter-spacing:0.04em; color:var(--gold);
+  text-shadow:0 0 18px rgba(245,197,66,0.5); font-family:"Georgia", serif;}
+.logo small{display:block; font-size:0.85rem; letter-spacing:0.25em; color:var(--ink-dim); font-weight:700; margin-top:4px;}
+.home-btns{display:flex; flex-direction:column; gap:14px; width:100%; max-width:280px;}
+.btn-primary{background:linear-gradient(180deg,#ffe08a,var(--gold)); color:#231a02; border:none; border-radius:999px;
+  padding:16px 20px; font-weight:800; font-size:1.05rem; cursor:pointer; box-shadow:0 4px 0 var(--gold-dim);}
+.btn-primary:active{transform:translateY(2px); box-shadow:0 2px 0 var(--gold-dim);}
+.btn-secondary{background:transparent; color:var(--gold); border:1.5px solid var(--gold-dim); border-radius:999px;
+  padding:13px 20px; font-weight:700; font-size:0.95rem; cursor:pointer;}
+.home-best{color:var(--ink-dim); font-size:0.85rem;}
+.home-best b{color:var(--gold);}
+
+/* SETTINGS */
+#settings h1, #quiz h1{margin:0; font-size:1.3rem; font-weight:800; color:var(--gold);}
+.set-row{background:var(--panel); border:1px solid var(--opt-border); border-radius:14px; padding:14px 16px;
+  display:flex; align-items:center; justify-content:space-between; gap:10px;}
+.set-row .lbl{font-weight:700; font-size:0.95rem;}
+.set-row .sub{font-size:0.75rem; color:var(--ink-dim); margin-top:2px;}
+.switch{position:relative; width:48px; height:28px; flex-shrink:0;}
+.switch input{opacity:0; width:0; height:0;}
+.slider-toggle{position:absolute; inset:0; background:#2c3564; border-radius:999px; cursor:pointer; transition:0.15s;}
+.slider-toggle:before{content:""; position:absolute; width:22px; height:22px; left:3px; top:3px; background:#fff; border-radius:50%; transition:0.15s;}
+input:checked + .slider-toggle{background:var(--correct);}
+input:checked + .slider-toggle:before{transform:translateX(20px);}
+select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--opt-border); border-radius:8px; padding:6px 8px; font-size:0.85rem;}
+.back-row{display:flex; justify-content:space-between; align-items:center;}
+.icon-btn{background:none; border:none; color:var(--ink-dim); font-size:1.4rem; cursor:pointer; padding:4px;}
+
+/* QUIZ */
+#quiz{gap:14px;}
+.quiz-top{display:flex; justify-content:space-between; align-items:center;}
+.level-tag{color:var(--gold); font-weight:800; font-size:0.95rem;}
+.progress-track{height:6px; border-radius:4px; background:#16215a; overflow:hidden;}
+.progress-fill{height:100%; background:var(--gold); width:0%; transition:width 200ms ease;}
+.ladder{display:flex; gap:6px; overflow-x:auto; padding-bottom:2px;}
+.ladder-item{flex-shrink:0; background:var(--panel); border:1px solid var(--opt-border); border-radius:8px;
+  padding:6px 10px; font-size:0.72rem; font-weight:700; color:var(--ink-dim); white-space:nowrap;}
+.ladder-item.current{background:var(--gold); color:#231a02; border-color:var(--gold);}
+.letter-card{background:radial-gradient(circle, #12245e 0%, #0a1440 100%); border:2px solid var(--gold-dim);
+  border-radius:22px; padding:36px 10px 26px; display:flex; flex-direction:column; align-items:center; gap:6px;}
+.letter-card .cue{font-size:0.78rem; color:var(--ink-dim); font-weight:700; letter-spacing:0.05em;}
+.arabic-letter{font-size:7rem; line-height:1; font-family:"Traditional Arabic","Scheherazade New",Arial,sans-serif;
+  color:var(--ink); direction:rtl; text-shadow:0 0 20px rgba(245,197,66,0.25);}
+.options{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.opt{background:linear-gradient(180deg,var(--opt),#0d1a4a); border:1.5px solid var(--opt-border); border-radius:14px;
+  padding:14px 10px; display:flex; align-items:center; gap:10px; font-size:1rem; font-weight:700; color:var(--ink);
+  cursor:pointer; text-align:left;}
+.opt:active{transform:scale(0.98);}
+.opt .tag{width:26px; height:26px; border-radius:8px; background:rgba(245,197,66,0.15); display:flex; align-items:center;
+  justify-content:center; font-size:0.85rem; font-weight:800; color:var(--gold); flex-shrink:0;}
+.opt.correct{background:color-mix(in srgb, var(--correct) 30%, var(--opt)); border-color:var(--correct);}
+.opt.correct .tag{background:var(--correct); color:#fff;}
+.opt.wrong{background:color-mix(in srgb, var(--wrong) 30%, var(--opt)); border-color:var(--wrong);}
+.opt.wrong .tag{background:var(--wrong); color:#fff;}
+.opt.disabled{pointer-events:none; opacity:0.55;}
+.opt.disabled.correct,.opt.disabled.wrong{opacity:1;}
+.footer-row{display:flex; justify-content:space-between; align-items:center; min-height:30px;}
+.feedback{font-weight:700; font-size:0.9rem;}
+.feedback.ok{color:var(--correct);} .feedback.no{color:var(--wrong);}
+.link-btn{background:none; border:none; color:var(--ink-dim); font-size:0.82rem; text-decoration:underline; cursor:pointer;}
+
+.overlay{position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; padding:20px; z-index:10;}
+.overlay.show{display:flex;}
+.round-card{background:var(--panel); border:1px solid var(--opt-border); border-radius:18px; padding:28px 24px; text-align:center; max-width:340px; width:100%;}
+.round-card h2{margin:0 0 6px; font-size:1.3rem; color:var(--gold);}
+.round-card p{margin:0 0 18px; color:var(--ink-dim); font-size:0.95rem;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="screen active" id="home">
+    <div class="logo">ELİFBA<small>HARF BİLGİ YARIŞMASI</small></div>
+    <div class="home-btns">
+      <button class="btn-primary" id="startBtn">Başla</button>
+      <button class="btn-secondary" id="settingsBtn">⚙ Ayarlar</button>
+    </div>
+    <div class="home-best">En uzun doğru seri: <b id="homeBest">0</b></div>
+  </div>
+
+  <div class="screen" id="settings">
+    <div class="back-row"><button class="icon-btn" id="settingsBack">←</button><h1>Ayarlar</h1><span style="width:28px"></span></div>
+    <div class="set-row">
+      <div><div class="lbl">Sesli okuma</div><div class="sub">Doğru cevabı sesle söyler</div></div>
+      <label class="switch"><input type="checkbox" id="voiceToggle"><span class="slider-toggle"></span></label>
+    </div>
+    <div class="set-row">
+      <div><div class="lbl">Konuşma hızı</div><div class="sub">Sesin okuma hızı</div></div>
+      <select class="rate-select" id="rateSelect">
+        <option value="0.75">Yavaş</option>
+        <option value="1" selected>Normal</option>
+        <option value="1.25">Hızlı</option>
+      </select>
+    </div>
+    <div class="set-row">
+      <div><div class="lbl">Rekoru sıfırla</div><div class="sub">En uzun doğru seriyi siler</div></div>
+      <button class="btn-secondary" id="resetBestBtn" style="padding:8px 14px; font-size:0.82rem;">Sıfırla</button>
+    </div>
+  </div>
+
+  <div class="screen" id="quiz">
+    <div class="back-row">
+      <button class="icon-btn" id="quizHome">←</button>
+      <h1>Elifba</h1>
+      <span class="level-tag" id="levelTag">1/29</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="ladder" id="ladder"></div>
+    <div class="letter-card">
+      <div class="cue">BU HARF HANGİSİDİR?</div>
+      <div class="arabic-letter" id="letterDisplay">ا</div>
+    </div>
+    <div class="options" id="options"></div>
+    <div class="footer-row">
+      <div class="feedback" id="feedback"></div>
+      <button class="link-btn" id="resetBtn">Baştan başla</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="overlay" id="roundOverlay">
+  <div class="round-card">
+    <h2>Tur tamamlandı 🎉</h2>
+    <p id="roundSummary">29 harfin hepsini gördün.</p>
+    <button class="btn-primary" id="nextRoundBtn" style="width:100%;">Yeni Tur Başlat</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const LETTERS=[
+    {ar:'ا',name:'Elif'},{ar:'ب',name:'Be'},{ar:'ت',name:'Te'},{ar:'ث',name:'Se'},
+    {ar:'ج',name:'Cim'},{ar:'ح',name:'Ha'},{ar:'خ',name:'Hı'},{ar:'د',name:'Dal'},
+    {ar:'ذ',name:'Zel'},{ar:'ر',name:'Ra'},{ar:'ز',name:'Ze'},{ar:'س',name:'Sin'},
+    {ar:'ش',name:'Şın'},{ar:'ص',name:'Sad'},{ar:'ض',name:'Dad'},{ar:'ط',name:'Tı'},
+    {ar:'ظ',name:'Zı'},{ar:'ع',name:'Ayn'},{ar:'غ',name:'Gayn'},{ar:'ف',name:'Fe'},
+    {ar:'ق',name:'Kaf'},{ar:'ك',name:'Kef'},{ar:'ل',name:'Lam'},{ar:'م',name:'Mim'},
+    {ar:'ن',name:'Nun'},{ar:'و',name:'Vav'},{ar:'ه',name:'He'},{ar:'لا',name:'Lamelif'},
+    {ar:'ي',name:'Ye'}
+  ];
+  const LABELS=['A','B','C','D'];
+
+  const $=id=>document.getElementById(id);
+  const screens={home:$('home'),settings:$('settings'),quiz:$('quiz')};
+  function show(name){Object.values(screens).forEach(s=>s.classList.remove('active')); screens[name].classList.add('active');}
+
+  let voiceOn=true, rate=1, best=0;
+  try{
+    voiceOn = localStorage.getItem('elifba_voice_on') !== 'false';
+    rate = parseFloat(localStorage.getItem('elifba_rate')||'1');
+    best = parseInt(localStorage.getItem('elifba_best_streak')||'0',10) || 0;
+  }catch(e){}
+  $('voiceToggle').checked=voiceOn;
+  $('rateSelect').value=String(rate);
+  $('homeBest').textContent=best;
+
+  $('voiceToggle').addEventListener('change',e=>{
+    voiceOn=e.target.checked;
+    try{localStorage.setItem('elifba_voice_on', String(voiceOn));}catch(err){}
+  });
+  $('rateSelect').addEventListener('change',e=>{
+    rate=parseFloat(e.target.value);
+    try{localStorage.setItem('elifba_rate', String(rate));}catch(err){}
+  });
+  $('resetBestBtn').addEventListener('click',()=>{
+    best=0; $('homeBest').textContent=0;
+    try{localStorage.setItem('elifba_best_streak','0');}catch(e){}
+  });
+
+  function speak(text){
+    if(!voiceOn) return;
+    try{
+      if(!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang='tr-TR'; u.rate=rate;
+      window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+
+  $('startBtn').addEventListener('click',()=>{show('quiz'); newRound();});
+  $('settingsBtn').addEventListener('click',()=>show('settings'));
+  $('settingsBack').addEventListener('click',()=>show('home'));
+  $('quizHome').addEventListener('click',()=>show('home'));
+
+  function shuffle(arr){const a=arr.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a;}
+
+  let queue=[], qIndex=0, score=0, streak=0, locked=false;
+  const letterDisplay=$('letterDisplay'), optionsEl=$('options'), feedbackEl=$('feedback'),
+        progressFill=$('progressFill'), levelTag=$('levelTag'), ladderEl=$('ladder'),
+        roundOverlay=$('roundOverlay'), roundSummary=$('roundSummary');
+
+  function newRound(){
+    queue=shuffle(LETTERS); qIndex=0; score=0; streak=0;
+    roundOverlay.classList.remove('show');
+    buildLadder();
+    nextQuestion();
+  }
+
+  function buildLadder(){
+    ladderEl.innerHTML='';
+    LETTERS.forEach((_,i)=>{
+      const d=document.createElement('div');
+      d.className='ladder-item'; d.id='lad-'+i;
+      d.textContent=(i+1);
+      ladderEl.appendChild(d);
+    });
+  }
+  function markLadder(){
+    LETTERS.forEach((_,i)=>{
+      const el=$('lad-'+i);
+      el.classList.toggle('current', i===qIndex);
+    });
+    const cur=$('lad-'+qIndex);
+    if(cur) cur.scrollIntoView({inline:'center', block:'nearest'});
+  }
+
+  function nextQuestion(){
+    if(qIndex>=queue.length){
+      roundSummary.textContent=LETTERS.length+' harfin hepsini gördün. Skorun: '+score;
+      roundOverlay.classList.add('show');
+      return;
+    }
+    locked=false;
+    feedbackEl.textContent=''; feedbackEl.className='feedback';
+    const current=queue[qIndex];
+    letterDisplay.textContent=current.ar;
+    levelTag.textContent=(qIndex+1)+'/'+queue.length;
+    progressFill.style.width=Math.round((qIndex/queue.length)*100)+'%';
+    markLadder();
+
+    const wrongPool=LETTERS.filter(l=>l.name!==current.name);
+    const wrongs=shuffle(wrongPool).slice(0,3);
+    const choices=shuffle([current,...wrongs]);
+
+    optionsEl.innerHTML='';
+    choices.forEach((choice,i)=>{
+      const btn=document.createElement('button');
+      btn.className='opt';
+      btn.innerHTML='<span class="tag">'+LABELS[i]+'</span><span>'+choice.name+'</span>';
+      btn.addEventListener('click',()=>selectAnswer(btn,choice,current));
+      optionsEl.appendChild(btn);
+    });
+  }
+
+  function selectAnswer(btn,choice,current){
+    if(locked) return;
+    locked=true;
+    const allBtns=optionsEl.querySelectorAll('.opt');
+    allBtns.forEach(b=>b.classList.add('disabled'));
+
+    if(choice.name===current.name){
+      btn.classList.add('correct');
+      feedbackEl.textContent='Doğru!'; feedbackEl.classList.add('ok');
+      score++; streak++;
+      if(streak>best){
+        best=streak; $('homeBest').textContent=best;
+        try{localStorage.setItem('elifba_best_streak', String(best));}catch(e){}
+      }
+    }else{
+      btn.classList.add('wrong');
+      allBtns.forEach(b=>{ if(b.textContent.trim()===current.name) b.classList.add('correct'); });
+      feedbackEl.textContent='Yanlış — doğrusu '+current.name; feedbackEl.classList.add('no');
+      streak=0;
+    }
+    speak(current.name);
+
+    setTimeout(()=>{ qIndex++; nextQuestion(); },1100);
+  }
+
+  $('resetBtn').addEventListener('click', newRound);
+  $('nextRoundBtn').addEventListener('click', newRound);
+})();
+</script>
+</body>
+</html>
