@@ -34,8 +34,25 @@ body{margin:0; min-height:100%; background:radial-gradient(circle at 50% -10%, v
 .home-best{color:var(--ink-dim); font-size:0.85rem;}
 .home-best b{color:var(--gold);}
 
+/* MODES */
+.mode-list{display:flex; flex-direction:column; gap:10px;}
+.mode-group{color:var(--ink-dim); font-size:0.72rem; font-weight:800; letter-spacing:0.15em; margin:8px 2px 0;}
+.mode-card{width:100%; min-height:68px; background:linear-gradient(180deg,var(--opt),#0d1a4a); border:1.5px solid var(--opt-border);
+  border-radius:14px; padding:12px 14px; display:flex; align-items:center; gap:14px; color:var(--ink); text-align:left;
+  cursor:pointer; font:inherit;}
+.mode-card:active{transform:scale(0.98); border-color:var(--gold);}
+.mode-icon{width:48px; height:48px; border-radius:12px; background:rgba(245,197,66,0.15); color:var(--gold); flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-size:1.7rem; line-height:1.3;
+  font-family:"Traditional Arabic","Scheherazade New",Arial,sans-serif;}
+.mode-text{flex:1; min-width:0;}
+.mode-title{font-weight:800; font-size:1rem;}
+.mode-title .inf{color:var(--gold);}
+.mode-desc{font-size:0.75rem; color:var(--ink-dim); margin-top:2px;}
+.mode-best{font-size:0.72rem; color:var(--ink-dim); font-weight:700; text-align:right; white-space:nowrap;}
+.mode-best b{display:block; color:var(--gold); font-size:1.05rem;}
+
 /* SETTINGS */
-#settings h1, #quiz h1{margin:0; font-size:1.3rem; font-weight:800; color:var(--gold);}
+#settings h1, #quiz h1, #modes h1{margin:0; font-size:1.3rem; font-weight:800; color:var(--gold);}
 .set-row{background:var(--panel); border:1px solid var(--opt-border); border-radius:14px; padding:14px 16px;
   display:flex; align-items:center; justify-content:space-between; gap:10px;}
 .set-row .lbl{font-weight:700; font-size:0.95rem;}
@@ -47,24 +64,28 @@ body{margin:0; min-height:100%; background:radial-gradient(circle at 50% -10%, v
 input:checked + .slider-toggle{background:var(--correct);}
 input:checked + .slider-toggle:before{transform:translateX(20px);}
 select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--opt-border); border-radius:8px; padding:6px 8px; font-size:0.85rem;}
-.back-row{display:flex; justify-content:space-between; align-items:center;}
+.back-row{display:flex; justify-content:space-between; align-items:center; gap:8px;}
 .icon-btn{background:none; border:none; color:var(--ink-dim); font-size:1.4rem; cursor:pointer; padding:4px;}
 
 /* QUIZ */
 #quiz{gap:14px;}
+#quiz h1{font-size:1.05rem; text-align:center;}
 .quiz-top{display:flex; justify-content:space-between; align-items:center;}
-.level-tag{color:var(--gold); font-weight:800; font-size:0.95rem;}
+.level-tag{color:var(--gold); font-weight:800; font-size:0.95rem; white-space:nowrap;}
 .progress-track{height:6px; border-radius:4px; background:#16215a; overflow:hidden;}
 .progress-fill{height:100%; background:var(--gold); width:0%; transition:width 200ms ease;}
 .ladder{display:flex; gap:6px; overflow-x:auto; padding-bottom:2px;}
 .ladder-item{flex-shrink:0; background:var(--panel); border:1px solid var(--opt-border); border-radius:8px;
   padding:6px 10px; font-size:0.72rem; font-weight:700; color:var(--ink-dim); white-space:nowrap;}
 .ladder-item.current{background:var(--gold); color:#231a02; border-color:var(--gold);}
+.hidden{display:none !important;}
 .letter-card{background:radial-gradient(circle, #12245e 0%, #0a1440 100%); border:2px solid var(--gold-dim);
   border-radius:22px; padding:36px 10px 26px; display:flex; flex-direction:column; align-items:center; gap:6px;}
 .letter-card .cue{font-size:0.78rem; color:var(--ink-dim); font-weight:700; letter-spacing:0.05em;}
 .arabic-letter{font-size:7rem; line-height:1; font-family:"Traditional Arabic","Scheherazade New",Arial,sans-serif;
   color:var(--ink); direction:rtl; text-shadow:0 0 20px rgba(245,197,66,0.25);}
+.arabic-letter.harekeli{line-height:1.35;}
+.arabic-letter.wide{font-size:5.5rem;}
 .options{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 .opt{background:linear-gradient(180deg,var(--opt),#0d1a4a); border:1.5px solid var(--opt-border); border-radius:14px;
   padding:14px 10px; display:flex; align-items:center; gap:10px; font-size:1rem; font-weight:700; color:var(--ink);
@@ -102,6 +123,11 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
     <div class="home-best">En uzun doğru seri: <b id="homeBest">0</b></div>
   </div>
 
+  <div class="screen" id="modes">
+    <div class="back-row"><button class="icon-btn" id="modesBack">←</button><h1>Mod Seç</h1><span style="width:28px"></span></div>
+    <div class="mode-list" id="modeList"></div>
+  </div>
+
   <div class="screen" id="settings">
     <div class="back-row"><button class="icon-btn" id="settingsBack">←</button><h1>Ayarlar</h1><span style="width:28px"></span></div>
     <div class="set-row">
@@ -117,7 +143,7 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
       </select>
     </div>
     <div class="set-row">
-      <div><div class="lbl">Rekoru sıfırla</div><div class="sub">En uzun doğru seriyi siler</div></div>
+      <div><div class="lbl">Rekorları sıfırla</div><div class="sub">Tüm modların en uzun doğru serisini siler</div></div>
       <button class="btn-secondary" id="resetBestBtn" style="padding:8px 14px; font-size:0.82rem;">Sıfırla</button>
     </div>
   </div>
@@ -125,13 +151,13 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
   <div class="screen" id="quiz">
     <div class="back-row">
       <button class="icon-btn" id="quizHome">←</button>
-      <h1>Elifba</h1>
+      <h1 id="quizTitle">Elifba</h1>
       <span class="level-tag" id="levelTag">1/29</span>
     </div>
-    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-track" id="progressTrack"><div class="progress-fill" id="progressFill"></div></div>
     <div class="ladder" id="ladder"></div>
     <div class="letter-card">
-      <div class="cue">BU HARF HANGİSİDİR?</div>
+      <div class="cue" id="cue">BU HARF HANGİSİDİR?</div>
       <div class="arabic-letter" id="letterDisplay">ا</div>
     </div>
     <div class="options" id="options"></div>
@@ -145,9 +171,10 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
 
 <div class="overlay" id="roundOverlay">
   <div class="round-card">
-    <h2>Tur tamamlandı 🎉</h2>
+    <h2 id="roundTitle">Tur tamamlandı 🎉</h2>
     <p id="roundSummary">29 harfin hepsini gördün.</p>
     <button class="btn-primary" id="nextRoundBtn" style="width:100%;">Yeni Tur Başlat</button>
+    <button class="btn-secondary" id="overlayModesBtn" style="width:100%; margin-top:10px;">Mod Seç</button>
   </div>
 </div>
 
@@ -163,21 +190,131 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
     {ar:'ن',name:'Nun'},{ar:'و',name:'Vav'},{ar:'ه',name:'He'},{ar:'لا',name:'Lamelif'},
     {ar:'ي',name:'Ye'}
   ];
+
+  /* =====================================================================
+     HAREKELİ HARFLER TABLOSU — kitaptan doğrulayıp buradan düzeltebilirsin.
+     Oyundaki bütün harekeli sorular yalnızca bu tablodan üretilir.
+
+     Sütunlar: harf | harf adı | kalınlık | üstün | esre | ötre | cezm | not
+       kalınlık 'ince'  → üstün "e", esre "i", ötre "ü" ile okunur  (بَ Be, بِ Bi, بُ Bü)
+       kalınlık 'kalın' → üstün "a", esre "ı", ötre "u" ile okunur  (قَ Ka, قِ Kı, قُ Ku)
+       cezm: cezmli harf önüne üstünlü elif konarak okunur (اَبْ = Eb).
+             null yazılan hücre o hareke ile hiç sorulmaz.
+       not:  kontrol edilmesi gereken yerler (oyunda görünmez).
+     ===================================================================== */
+  const HAREKELI_VERI=[
+    // harf  adı        kalınlık                 üstün  esre  ötre  cezm   not
+    ['ا', 'Elif',  'ince',                   'E',  'İ',  'Ü',  null,  'Elif cezm almaz'],
+    ['ب', 'Be',    'ince',                   'Be', 'Bi', 'Bü', 'Eb',  ''],
+    ['ت', 'Te',    'ince',                   'Te', 'Ti', 'Tü', 'Et',  ''],
+    ['ث', 'Se',    'ince',                   'Se', 'Si', 'Sü', 'Es',  ''],
+    ['ج', 'Cim',   'ince',                   'Ce', 'Ci', 'Cü', 'Ec',  ''],
+    ['ح', 'Ha',    'ince',                   'He', 'Hi', 'Hü', 'Eh',  'KONTROL: bazı kitaplarda Ha / Hı / Hu yazılır'],
+    ['خ', 'Hı',    'kalın',                  'Ha', 'Hı', 'Hu', 'Ah',  ''],
+    ['د', 'Dal',   'ince',                   'De', 'Di', 'Dü', 'Ed',  ''],
+    ['ذ', 'Zel',   'ince',                   'Ze', 'Zi', 'Zü', 'Ez',  ''],
+    ['ر', 'Ra',    'kalın (esrede ince)',    'Ra', 'Ri', 'Ru', 'Ar',  'KONTROL: Ra değişkendir; cezmde Ar mı Er mi?'],
+    ['ز', 'Ze',    'ince',                   'Ze', 'Zi', 'Zü', 'Ez',  ''],
+    ['س', 'Sin',   'ince',                   'Se', 'Si', 'Sü', 'Es',  ''],
+    ['ش', 'Şın',   'ince',                   'Şe', 'Şi', 'Şü', 'Eş',  ''],
+    ['ص', 'Sad',   'kalın',                  'Sa', 'Sı', 'Su', 'As',  ''],
+    ['ض', 'Dad',   'kalın',                  'Da', 'Dı', 'Du', 'Ad',  ''],
+    ['ط', 'Tı',    'kalın',                  'Ta', 'Tı', 'Tu', 'At',  ''],
+    ['ظ', 'Zı',    'kalın',                  'Za', 'Zı', 'Zu', 'Az',  ''],
+    ['ع', 'Ayn',   'ince',                   'E',  'İ',  'Ü',  "E'",  'KONTROL: boğazdan okunur; bazı kitaplarda A / I / U yazılır'],
+    ['غ', 'Gayn',  'kalın',                  'Ğa', 'Ğı', 'Ğu', 'Ağ',  ''],
+    ['ف', 'Fe',    'ince',                   'Fe', 'Fi', 'Fü', 'Ef',  ''],
+    ['ق', 'Kaf',   'kalın',                  'Ka', 'Kı', 'Ku', 'Ak',  ''],
+    ['ك', 'Kef',   'ince',                   'Ke', 'Ki', 'Kü', 'Ek',  ''],
+    ['ل', 'Lam',   'ince',                   'Le', 'Li', 'Lü', 'El',  ''],
+    ['م', 'Mim',   'ince',                   'Me', 'Mi', 'Mü', 'Em',  ''],
+    ['ن', 'Nun',   'ince',                   'Ne', 'Ni', 'Nü', 'En',  ''],
+    ['و', 'Vav',   'ince',                   'Ve', 'Vi', 'Vü', 'Ev',  ''],
+    ['ه', 'He',    'ince',                   'He', 'Hi', 'Hü', 'Eh',  ''],
+    ['ي', 'Ye',    'ince',                   'Ye', 'Yi', 'Yü', 'Ey',  '']
+  ];
+  const HAREKELER=[
+    {ad:'Üstün', isaret:'َ'},
+    {ad:'Esre',  isaret:'ِ'},
+    {ad:'Ötre',  isaret:'ُ'},
+    {ad:'Cezm',  isaret:'ْ'}
+  ];
+  const ELIF_USTUN='اَ';
+
+  // Tablodaki her dolu hücre bir soru olur
+  const HAREKELI_SORULAR=[];
+  HAREKELI_VERI.forEach(([harf,harfAdi,kalinlik,...rest])=>{
+    const okunuslar=rest.slice(0,4);
+    HAREKELER.forEach((h,i)=>{
+      if(!okunuslar[i]) return;
+      HAREKELI_SORULAR.push({harf, harfAdi, kalinlik, hareke:h.ad, isaret:h.isaret, okunus:okunuslar[i],
+        digerOkunuslar:okunuslar.filter((o,j)=>o && j!==i)});
+    });
+  });
+
+  const MODES=[
+    {id:'klasik',         title:'Elifba Klasik',          icon:'ب',  type:'harf',   endless:false, desc:'29 harf, tur sonunda biter', key:'elifba_best_streak'},
+    {id:'harekeli',       title:'Harekeli Elifba',        icon:'بَ', type:'okunus', endless:false, desc:'Harekeli harfin okunuşunu bul'},
+    {id:'isim',           title:'Harekeli Elifba (İsim)', icon:'بُ', type:'isim',   endless:false, desc:'Harekenin adını bul'},
+    {id:'klasik_sonsuz',  title:'Elifba Klasik',          icon:'ب',  type:'harf',   endless:true,  desc:'Harfler bitmez, yanlışta biter'},
+    {id:'harekeli_sonsuz',title:'Harekeli Elifba',        icon:'بَ', type:'okunus', endless:true,  desc:'Okunuşlar bitmez, yanlışta biter'},
+    {id:'isim_sonsuz',    title:'Harekeli Elifba (İsim)', icon:'بُ', type:'isim',   endless:true,  desc:'Harekeler bitmez, yanlışta biter'}
+  ];
+  const CUES={harf:'BU HARF HANGİSİDİR?', okunus:'NASIL OKUNUR?', isim:'HAREKESİ HANGİSİDİR?'};
   const LABELS=['A','B','C','D'];
 
   const $=id=>document.getElementById(id);
-  const screens={home:$('home'),settings:$('settings'),quiz:$('quiz')};
+  const screens={home:$('home'),modes:$('modes'),settings:$('settings'),quiz:$('quiz')};
   function show(name){Object.values(screens).forEach(s=>s.classList.remove('active')); screens[name].classList.add('active');}
 
-  let voiceOn=true, rate=1, best=0;
+  function shuffle(arr){const a=arr.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a;}
+  const unique=arr=>[...new Set(arr)];
+
+  // "Be" → Ba, Be, Bı, Bi, Bu, Bü  (ilk ünlü değiştirilerek benzer şıklar üretilir)
+  function vowelVariants(s){
+    const m=s.match(/[aeıiuüoöAEIİUÜOÖ]/);
+    if(!m) return [];
+    const upper=m[0]!==m[0].toLocaleLowerCase('tr');
+    return ['a','e','ı','i','u','ü'].map(v=>s.slice(0,m.index)+(upper?v.toLocaleUpperCase('tr'):v)+s.slice(m.index+1));
+  }
+
+  // Her soru: ekranda ne görünecek, doğru cevap, sesli okunacak metin ve 3 yanlış şık
+  function makeQuestions(type){
+    if(type==='harf'){
+      return LETTERS.map(l=>({display:l.ar, answer:l.name, speak:l.name,
+        wrongs:()=>shuffle(LETTERS.filter(x=>x.name!==l.name).map(x=>x.name)).slice(0,3)}));
+    }
+    if(type==='okunus'){
+      return HAREKELI_SORULAR.map(s=>({
+        display: s.hareke==='Cezm' ? ELIF_USTUN+s.harf+s.isaret : s.harf+s.isaret,
+        answer:s.okunus, speak:s.okunus,
+        wrongs:()=>shuffle(unique([...s.digerOkunuslar, ...vowelVariants(s.okunus)]).filter(o=>o!==s.okunus)).slice(0,3)}));
+    }
+    return HAREKELI_SORULAR.map(s=>({
+      display:s.harf+s.isaret, answer:s.hareke,
+      speak:s.harfAdi+' '+s.hareke.toLocaleLowerCase('tr')+', '+s.okunus,
+      wrongs:()=>HAREKELER.map(h=>h.ad).filter(ad=>ad!==s.hareke)}));
+  }
+
+  // --- Ayarlar ve rekorlar ---
+  let voiceOn=true, rate=1;
+  const bests={};
+  const bestKey=m=>m.key||('elifba_best_'+m.id);
   try{
     voiceOn = localStorage.getItem('elifba_voice_on') !== 'false';
     rate = parseFloat(localStorage.getItem('elifba_rate')||'1');
-    best = parseInt(localStorage.getItem('elifba_best_streak')||'0',10) || 0;
   }catch(e){}
+  MODES.forEach(m=>{
+    let v=0;
+    try{ v=parseInt(localStorage.getItem(bestKey(m))||'0',10)||0; }catch(e){}
+    bests[m.id]=v;
+  });
+  function saveBest(m){ try{localStorage.setItem(bestKey(m), String(bests[m.id]));}catch(e){} }
+  function updateHomeBest(){ $('homeBest').textContent=Math.max(...MODES.map(m=>bests[m.id])); }
+
   $('voiceToggle').checked=voiceOn;
   $('rateSelect').value=String(rate);
-  $('homeBest').textContent=best;
+  updateHomeBest();
 
   $('voiceToggle').addEventListener('change',e=>{
     voiceOn=e.target.checked;
@@ -188,8 +325,8 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
     try{localStorage.setItem('elifba_rate', String(rate));}catch(err){}
   });
   $('resetBestBtn').addEventListener('click',()=>{
-    best=0; $('homeBest').textContent=0;
-    try{localStorage.setItem('elifba_best_streak','0');}catch(e){}
+    MODES.forEach(m=>{ bests[m.id]=0; saveBest(m); });
+    updateHomeBest();
   });
 
   function speak(text){
@@ -203,28 +340,65 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
     }catch(e){}
   }
 
-  $('startBtn').addEventListener('click',()=>{show('quiz'); newRound();});
+  // --- Mod seçim ekranı ---
+  function renderModes(){
+    const list=$('modeList');
+    list.innerHTML='';
+    [['TUR MODLARI',false],['SONSUZ MODLAR',true]].forEach(([label,endless])=>{
+      const g=document.createElement('div');
+      g.className='mode-group'; g.textContent=label;
+      list.appendChild(g);
+      MODES.filter(m=>m.endless===endless).forEach(m=>{
+        const card=document.createElement('button');
+        card.className='mode-card';
+        card.innerHTML='<span class="mode-icon">'+m.icon+'</span>'+
+          '<span class="mode-text"><div class="mode-title">'+m.title+(m.endless?' <span class="inf">∞</span>':'')+'</div>'+
+          '<div class="mode-desc">'+m.desc+'</div></span>'+
+          '<span class="mode-best">Rekor<b>'+bests[m.id]+'</b></span>';
+        card.addEventListener('click',()=>startMode(m));
+        list.appendChild(card);
+      });
+    });
+  }
+  function openModes(){ gameToken++; roundOverlay.classList.remove('show'); renderModes(); show('modes'); }
+
+  $('startBtn').addEventListener('click',openModes);
+  $('modesBack').addEventListener('click',()=>show('home'));
   $('settingsBtn').addEventListener('click',()=>show('settings'));
   $('settingsBack').addEventListener('click',()=>show('home'));
-  $('quizHome').addEventListener('click',()=>show('home'));
+  $('quizHome').addEventListener('click',openModes);
 
-  function shuffle(arr){const a=arr.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a;}
-
-  let queue=[], qIndex=0, score=0, streak=0, locked=false;
+  // --- Oyun ---
+  let mode=MODES[0], pool=[], queue=[], qIndex=0, score=0, streak=0, bestAtStart=0, locked=false, gameToken=0;
   const letterDisplay=$('letterDisplay'), optionsEl=$('options'), feedbackEl=$('feedback'),
         progressFill=$('progressFill'), levelTag=$('levelTag'), ladderEl=$('ladder'),
-        roundOverlay=$('roundOverlay'), roundSummary=$('roundSummary');
+        roundOverlay=$('roundOverlay'), roundTitle=$('roundTitle'), roundSummary=$('roundSummary');
 
-  function newRound(){
-    queue=shuffle(LETTERS); qIndex=0; score=0; streak=0;
+  const showLadder=()=>mode.type==='harf' && !mode.endless;
+
+  function startMode(m){
+    mode=m;
+    pool=makeQuestions(m.type);
+    $('quizTitle').textContent=m.title+(m.endless?' ∞':'');
+    $('cue').textContent=CUES[m.type];
+    $('progressTrack').classList.toggle('hidden', m.endless);
+    ladderEl.classList.toggle('hidden', !showLadder());
+    show('quiz');
+    newGame();
+  }
+
+  function newGame(){
+    gameToken++;
+    queue=shuffle(pool); qIndex=0; score=0; streak=0;
+    bestAtStart=bests[mode.id];
     roundOverlay.classList.remove('show');
-    buildLadder();
+    if(showLadder()) buildLadder();
     nextQuestion();
   }
 
   function buildLadder(){
     ladderEl.innerHTML='';
-    LETTERS.forEach((_,i)=>{
+    queue.forEach((_,i)=>{
       const d=document.createElement('div');
       d.className='ladder-item'; d.id='lad-'+i;
       d.textContent=(i+1);
@@ -232,37 +406,40 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
     });
   }
   function markLadder(){
-    LETTERS.forEach((_,i)=>{
-      const el=$('lad-'+i);
-      el.classList.toggle('current', i===qIndex);
-    });
+    queue.forEach((_,i)=>{ $('lad-'+i).classList.toggle('current', i===qIndex); });
     const cur=$('lad-'+qIndex);
     if(cur) cur.scrollIntoView({inline:'center', block:'nearest'});
   }
 
+  function updateLevelTag(){
+    levelTag.textContent = mode.endless ? ('Seri: '+score) : ((qIndex+1)+'/'+queue.length);
+  }
+
   function nextQuestion(){
     if(qIndex>=queue.length){
-      roundSummary.textContent=LETTERS.length+' harfin hepsini gördün. Skorun: '+score;
-      roundOverlay.classList.add('show');
-      return;
+      if(!mode.endless){ finishRound(); return; }
+      // Sonsuz mod: havuz bitince yeniden karılır (aynı soru arka arkaya gelmesin)
+      const last=queue[queue.length-1];
+      queue=shuffle(pool); qIndex=0;
+      if(queue.length>1 && queue[0].display===last.display){ [queue[0],queue[1]]=[queue[1],queue[0]]; }
     }
     locked=false;
     feedbackEl.textContent=''; feedbackEl.className='feedback';
     const current=queue[qIndex];
-    letterDisplay.textContent=current.ar;
-    levelTag.textContent=(qIndex+1)+'/'+queue.length;
+    letterDisplay.textContent=current.display;
+    letterDisplay.classList.toggle('harekeli', mode.type!=='harf');
+    letterDisplay.classList.toggle('wide', current.display.length>3);
+    updateLevelTag();
     progressFill.style.width=Math.round((qIndex/queue.length)*100)+'%';
-    markLadder();
+    if(showLadder()) markLadder();
 
-    const wrongPool=LETTERS.filter(l=>l.name!==current.name);
-    const wrongs=shuffle(wrongPool).slice(0,3);
-    const choices=shuffle([current,...wrongs]);
-
+    const choices=shuffle([current.answer, ...current.wrongs()]);
     optionsEl.innerHTML='';
     choices.forEach((choice,i)=>{
       const btn=document.createElement('button');
       btn.className='opt';
-      btn.innerHTML='<span class="tag">'+LABELS[i]+'</span><span>'+choice.name+'</span>';
+      btn.dataset.answer=choice;
+      btn.innerHTML='<span class="tag">'+LABELS[i]+'</span><span>'+choice+'</span>';
       btn.addEventListener('click',()=>selectAnswer(btn,choice,current));
       optionsEl.appendChild(btn);
     });
@@ -271,30 +448,54 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
   function selectAnswer(btn,choice,current){
     if(locked) return;
     locked=true;
+    const token=gameToken;
     const allBtns=optionsEl.querySelectorAll('.opt');
     allBtns.forEach(b=>b.classList.add('disabled'));
 
-    if(choice.name===current.name){
+    const isCorrect=choice===current.answer;
+    if(isCorrect){
       btn.classList.add('correct');
       feedbackEl.textContent='Doğru!'; feedbackEl.classList.add('ok');
       score++; streak++;
-      if(streak>best){
-        best=streak; $('homeBest').textContent=best;
-        try{localStorage.setItem('elifba_best_streak', String(best));}catch(e){}
+      if(streak>bests[mode.id]){
+        bests[mode.id]=streak; saveBest(mode); updateHomeBest();
       }
+      updateLevelTag();
     }else{
       btn.classList.add('wrong');
-      allBtns.forEach(b=>{ if(b.textContent.trim()===current.name) b.classList.add('correct'); });
-      feedbackEl.textContent='Yanlış — doğrusu '+current.name; feedbackEl.classList.add('no');
+      allBtns.forEach(b=>{ if(b.dataset.answer===current.answer) b.classList.add('correct'); });
+      feedbackEl.textContent='Yanlış — doğrusu '+current.answer; feedbackEl.classList.add('no');
       streak=0;
     }
-    speak(current.name);
+    speak(current.speak);
 
-    setTimeout(()=>{ qIndex++; nextQuestion(); },1100);
+    setTimeout(()=>{
+      if(token!==gameToken) return; // bu arada oyundan çıkıldıysa devam etme
+      if(!isCorrect && mode.endless){ gameOver(); return; }
+      qIndex++; nextQuestion();
+    }, isCorrect ? 1100 : 1600);
   }
 
-  $('resetBtn').addEventListener('click', newRound);
-  $('nextRoundBtn').addEventListener('click', newRound);
+  function finishRound(){
+    progressFill.style.width='100%';
+    roundTitle.textContent='Tur tamamlandı 🎉';
+    roundSummary.textContent = mode.type==='harf'
+      ? LETTERS.length+' harfin hepsini gördün. Skorun: '+score
+      : queue.length+' sorunun hepsini gördün. Doğru: '+score+'/'+queue.length;
+    $('nextRoundBtn').textContent='Yeni Tur Başlat';
+    roundOverlay.classList.add('show');
+  }
+
+  function gameOver(){
+    roundTitle.textContent = score>bestAtStart ? 'Yeni rekor! 🎉' : 'Oyun bitti';
+    roundSummary.textContent='Doğru cevap serisi: '+score+' · Rekor: '+bests[mode.id];
+    $('nextRoundBtn').textContent='Tekrar Oyna';
+    roundOverlay.classList.add('show');
+  }
+
+  $('resetBtn').addEventListener('click', newGame);
+  $('nextRoundBtn').addEventListener('click', newGame);
+  $('overlayModesBtn').addEventListener('click', openModes);
 })();
 </script>
 </body>
