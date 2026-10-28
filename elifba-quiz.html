@@ -78,6 +78,8 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
 .ladder-item{flex-shrink:0; background:var(--panel); border:1px solid var(--opt-border); border-radius:8px;
   padding:6px 10px; font-size:0.72rem; font-weight:700; color:var(--ink-dim); white-space:nowrap;}
 .ladder-item.current{background:var(--gold); color:#231a02; border-color:var(--gold);}
+.ladder-item.ok{background:var(--correct); color:#fff; border-color:var(--correct);}
+.ladder-item.no{background:var(--wrong); color:#fff; border-color:var(--wrong);}
 .hidden{display:none !important;}
 .letter-card{background:radial-gradient(circle, #12245e 0%, #0a1440 100%); border:2px solid var(--gold-dim);
   border-radius:22px; padding:36px 10px 26px; display:flex; flex-direction:column; align-items:center; gap:6px;}
@@ -161,6 +163,7 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
       <div class="arabic-letter" id="letterDisplay">ا</div>
     </div>
     <div class="options" id="options"></div>
+    <button class="btn-primary hidden" id="nextBtn" style="width:100%;">Devam →</button>
     <div class="footer-row">
       <div class="feedback" id="feedback"></div>
       <button class="link-btn" id="resetBtn">Baştan başla</button>
@@ -175,6 +178,15 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
     <p id="roundSummary">29 harfin hepsini gördün.</p>
     <button class="btn-primary" id="nextRoundBtn" style="width:100%;">Yeni Tur Başlat</button>
     <button class="btn-secondary" id="overlayModesBtn" style="width:100%; margin-top:10px;">Mod Seç</button>
+  </div>
+</div>
+
+<div class="overlay" id="confirmOverlay">
+  <div class="round-card">
+    <h2 id="confirmTitle">Turdan çıkılsın mı?</h2>
+    <p id="confirmText">Bu turdaki ilerlemen kaybolacak.</p>
+    <button class="btn-primary" id="confirmStayBtn" style="width:100%;">Devam et</button>
+    <button class="btn-secondary" id="confirmLeaveBtn" style="width:100%; margin-top:10px;">Çık</button>
   </div>
 </div>
 
@@ -366,13 +378,15 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
   $('modesBack').addEventListener('click',()=>show('home'));
   $('settingsBtn').addEventListener('click',()=>show('settings'));
   $('settingsBack').addEventListener('click',()=>show('home'));
-  $('quizHome').addEventListener('click',openModes);
+  $('quizHome').addEventListener('click',requestLeave);
 
   // --- Oyun ---
   let mode=MODES[0], pool=[], queue=[], qIndex=0, score=0, streak=0, bestAtStart=0, locked=false, gameToken=0;
+  let waitingNext=false; // yanlış cevaptan sonra "Devam" bekleniyor
   const letterDisplay=$('letterDisplay'), optionsEl=$('options'), feedbackEl=$('feedback'),
-        progressFill=$('progressFill'), levelTag=$('levelTag'), ladderEl=$('ladder'),
-        roundOverlay=$('roundOverlay'), roundTitle=$('roundTitle'), roundSummary=$('roundSummary');
+        progressFill=$('progressFill'), levelTag=$('levelTag'), ladderEl=$('ladder'), nextBtn=$('nextBtn'),
+        roundOverlay=$('roundOverlay'), roundTitle=$('roundTitle'), roundSummary=$('roundSummary'),
+        confirmOverlay=$('confirmOverlay');
 
   const showLadder=()=>mode.type==='harf' && !mode.endless;
 
@@ -392,6 +406,7 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
     queue=shuffle(pool); qIndex=0; score=0; streak=0;
     bestAtStart=bests[mode.id];
     roundOverlay.classList.remove('show');
+    closeConfirm();
     if(showLadder()) buildLadder();
     nextQuestion();
   }
@@ -424,6 +439,7 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
       if(queue.length>1 && queue[0].display===last.display){ [queue[0],queue[1]]=[queue[1],queue[0]]; }
     }
     locked=false;
+    waitingNext=false; nextBtn.classList.add('hidden');
     feedbackEl.textContent=''; feedbackEl.className='feedback';
     const current=queue[qIndex];
     letterDisplay.textContent=current.display;
@@ -467,14 +483,28 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
       feedbackEl.textContent='Yanlış — doğrusu '+current.answer; feedbackEl.classList.add('no');
       streak=0;
     }
+    if(showLadder()){ const tile=$('lad-'+qIndex); if(tile) tile.classList.add(isCorrect?'ok':'no'); }
     speak(current.speak);
 
-    setTimeout(()=>{
-      if(token!==gameToken) return; // bu arada oyundan çıkıldıysa devam etme
-      if(!isCorrect && mode.endless){ gameOver(); return; }
-      qIndex++; nextQuestion();
-    }, isCorrect ? 1100 : 1600);
+    if(isCorrect){
+      setTimeout(()=>{
+        if(token!==gameToken) return; // bu arada oyundan çıkıldıysa devam etme
+        qIndex++; nextQuestion();
+      }, 1100);
+    }else{
+      // Yanlışta otomatik geçme: doğru harfi incelemek için kullanıcı "Devam"a bassın
+      waitingNext=true;
+      nextBtn.textContent = mode.endless ? 'Sonucu gör →' : 'Devam →';
+      nextBtn.classList.remove('hidden');
+    }
   }
+
+  nextBtn.addEventListener('click',()=>{
+    if(!waitingNext) return;
+    waitingNext=false; nextBtn.classList.add('hidden');
+    if(mode.endless){ gameOver(); return; }
+    qIndex++; nextQuestion();
+  });
 
   function finishRound(){
     progressFill.style.width='100%';
@@ -493,9 +523,47 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
     roundOverlay.classList.add('show');
   }
 
-  $('resetBtn').addEventListener('click', newGame);
+  // --- Turdan çıkarken / baştan başlarken onay ---
+  let confirmAction=null;
+  function hasProgress(){
+    if(roundOverlay.classList.contains('show')) return false; // tur zaten bitti
+    if(mode.endless && waitingNext) return false;              // sonsuz modda yanlış cevap oyunu bitirdi
+    return qIndex>0 || score>0 || locked;
+  }
+  function askConfirm(title,text,leaveLabel,action){
+    $('confirmTitle').textContent=title;
+    $('confirmText').textContent=text;
+    $('confirmLeaveBtn').textContent=leaveLabel;
+    confirmAction=action;
+    confirmOverlay.classList.add('show');
+  }
+  function closeConfirm(){ confirmOverlay.classList.remove('show'); confirmAction=null; }
+  function requestLeave(){
+    if(hasProgress()) askConfirm('Turdan çıkılsın mı?','Bu turdaki ilerlemen kaybolacak.','Çık',openModes);
+    else openModes();
+  }
+  function requestRestart(){
+    if(hasProgress()) askConfirm('Baştan başlansın mı?','Bu turdaki ilerlemen kaybolacak.','Baştan başla',newGame);
+    else newGame();
+  }
+  $('confirmStayBtn').addEventListener('click', closeConfirm);
+  $('confirmLeaveBtn').addEventListener('click',()=>{ const action=confirmAction; closeConfirm(); if(action) action(); });
+
+  $('resetBtn').addEventListener('click', requestRestart);
   $('nextRoundBtn').addEventListener('click', newGame);
   $('overlayModesBtn').addEventListener('click', openModes);
+
+  // Android uygulamasındaki geri tuşu önce burayı çağırır.
+  // true: sayfa geri tuşunu kendisi halletti; false: ana ekrandayız, uygulama çıkışı sorabilir.
+  window.elifbaGeri=function(){
+    if(confirmOverlay.classList.contains('show')){ closeConfirm(); return true; }
+    if(screens.quiz.classList.contains('active')){
+      if(roundOverlay.classList.contains('show')) openModes(); else requestLeave();
+      return true;
+    }
+    if(!screens.home.classList.contains('active')){ show('home'); return true; }
+    return false;
+  };
 })();
 </script>
 </body>
