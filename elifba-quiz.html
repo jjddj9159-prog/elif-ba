@@ -29,6 +29,8 @@ body{margin:0; min-height:100%; background:radial-gradient(circle at 50% -10%, v
 .btn-primary{background:linear-gradient(180deg,#ffe08a,var(--gold)); color:#231a02; border:none; border-radius:999px;
   padding:16px 20px; font-weight:800; font-size:1.05rem; cursor:pointer; box-shadow:0 4px 0 var(--gold-dim);}
 .btn-primary:active{transform:translateY(2px); box-shadow:0 2px 0 var(--gold-dim);}
+.btn-reward{background:linear-gradient(180deg,#3fd184,var(--correct)); color:#fff; box-shadow:0 4px 0 #136b3b;}
+.btn-reward:active{box-shadow:0 2px 0 #136b3b;}
 .btn-secondary{background:transparent; color:var(--gold); border:1.5px solid var(--gold-dim); border-radius:999px;
   padding:13px 20px; font-weight:700; font-size:0.95rem; cursor:pointer;}
 .home-best{color:var(--ink-dim); font-size:0.85rem;}
@@ -176,6 +178,7 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
   <div class="round-card">
     <h2 id="roundTitle">Tur tamamlandı 🎉</h2>
     <p id="roundSummary">29 harfin hepsini gördün.</p>
+    <button class="btn-primary btn-reward hidden" id="continueBtn" style="width:100%; margin-bottom:12px;">🎬 Reklam izle, devam et</button>
     <button class="btn-primary" id="nextRoundBtn" style="width:100%;">Yeni Tur Başlat</button>
     <button class="btn-secondary" id="overlayModesBtn" style="width:100%; margin-top:10px;">Mod Seç</button>
   </div>
@@ -192,6 +195,20 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
 
 <script>
 (function(){
+  /* =====================================================================
+     REKLAM AYARLARI — sayıları buradan değiştirebilirsin.
+     Reklamlar yalnızca Android uygulamasında (1.2 ve sonrası) gösterilir;
+     tarayıcıda ve eski uygulama sürümlerinde hiçbir reklam çıkmaz.
+     ===================================================================== */
+  const REKLAM={
+    GECIS_SORU_SAYISI: 87,         // bu kadar cevaptan sonra geçiş reklamı (29 x 3 = 3 klasik tur)
+    GECIS_ARALIK_DK: 3,            // iki geçiş reklamı arasında en az bu kadar dakika
+    ILK_BEKLEME_DK: 5,             // uygulama açıldıktan sonraki ilk dakikalarda geçiş reklamı yok
+    ODULLU_SONRASI_BEKLEME_DK: 5,  // ödüllü reklam izlendikten sonra bu kadar dakika geçiş reklamı yok
+    DEVAM_MIN_SERI: 5,             // sonsuz modda "izle, devam et" teklifi için en az seri
+    DEVAM_HAKKI: 1                 // bir oyunda en fazla kaç kez "devam et" kullanılabilir
+  };
+
   const LETTERS=[
     {ar:'ا',name:'Elif'},{ar:'ب',name:'Be'},{ar:'ت',name:'Te'},{ar:'ث',name:'Se'},
     {ar:'ج',name:'Cim'},{ar:'ح',name:'Ha'},{ar:'خ',name:'Hı'},{ar:'د',name:'Dal'},
@@ -352,6 +369,43 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
     }catch(e){}
   }
 
+  // --- Reklamlar (köprüyü Android uygulaması sağlar: window.AndroidAds) ---
+  const ads=window.AndroidAds||null;
+  const RK={sayac:'elifba_reklam_sayac', sonGecis:'elifba_reklam_son_gecis', sonOdullu:'elifba_reklam_son_odullu'};
+  const DK=60000;
+  let reklamAcik=false; // şu an bir reklam ekranda
+  function rkOku(k){ try{ return parseInt(localStorage.getItem(k)||'0',10)||0; }catch(e){ return 0; } }
+  function rkYaz(k,v){ try{ localStorage.setItem(k,String(v)); }catch(e){} }
+  function gecenSure(k){ const d=Date.now()-rkOku(k); return d<0 ? Infinity : d; } // saat geri alınırsa kilitlenmesin
+  function reklamCevapSay(){ if(ads) rkYaz(RK.sayac, rkOku(RK.sayac)+1); }
+  function gecisUygunMu(){
+    if(!ads) return false;
+    try{
+      if(rkOku(RK.sayac) < REKLAM.GECIS_SORU_SAYISI) return false;
+      if(ads.getMillisSinceAppStart() < REKLAM.ILK_BEKLEME_DK*DK) return false;
+      if(gecenSure(RK.sonGecis) < REKLAM.GECIS_ARALIK_DK*DK) return false;
+      if(gecenSure(RK.sonOdullu) < REKLAM.ODULLU_SONRASI_BEKLEME_DK*DK) return false;
+      return ads.isInterstitialReady()===true;
+    }catch(e){ return false; }
+  }
+  // Yalnızca doğal molalarda çağrılır (tur sonu, oyun sonu, turdan çıkış):
+  // kurallar uygunsa önce geçiş reklamı, kapanınca asıl işlem.
+  function reklamliGecis(action){
+    if(reklamAcik) return;
+    if(!gecisUygunMu()){ action(); return; }
+    reklamAcik=true;
+    let bitti=false;
+    const devam=gosterildi=>{
+      if(bitti) return;
+      bitti=true; reklamAcik=false; window.__elifbaGecisKapandi=null;
+      if(gosterildi){ rkYaz(RK.sayac,0); rkYaz(RK.sonGecis,Date.now()); }
+      action();
+    };
+    window.__elifbaGecisKapandi=devam;
+    setTimeout(()=>devam(true), 120000); // yedek: uygulama hiç haber vermezse oyun kilitli kalmasın
+    try{ ads.showInterstitial(); }catch(e){ devam(false); }
+  }
+
   // --- Mod seçim ekranı ---
   function renderModes(){
     const list=$('modeList');
@@ -383,6 +437,7 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
   // --- Oyun ---
   let mode=MODES[0], pool=[], queue=[], qIndex=0, score=0, streak=0, bestAtStart=0, locked=false, gameToken=0;
   let waitingNext=false; // yanlış cevaptan sonra "Devam" bekleniyor
+  let devamSayisi=0;     // bu oyunda ödüllü reklamla kaç kez devam edildi
   const letterDisplay=$('letterDisplay'), optionsEl=$('options'), feedbackEl=$('feedback'),
         progressFill=$('progressFill'), levelTag=$('levelTag'), ladderEl=$('ladder'), nextBtn=$('nextBtn'),
         roundOverlay=$('roundOverlay'), roundTitle=$('roundTitle'), roundSummary=$('roundSummary'),
@@ -403,7 +458,7 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
 
   function newGame(){
     gameToken++;
-    queue=shuffle(pool); qIndex=0; score=0; streak=0;
+    queue=shuffle(pool); qIndex=0; score=0; streak=0; devamSayisi=0;
     bestAtStart=bests[mode.id];
     roundOverlay.classList.remove('show');
     closeConfirm();
@@ -484,6 +539,7 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
       streak=0;
     }
     if(showLadder()){ const tile=$('lad-'+qIndex); if(tile) tile.classList.add(isCorrect?'ok':'no'); }
+    reklamCevapSay();
     speak(current.speak);
 
     if(isCorrect){
@@ -513,6 +569,7 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
       ? LETTERS.length+' harfin hepsini gördün. Skorun: '+score
       : queue.length+' sorunun hepsini gördün. Doğru: '+score+'/'+queue.length;
     $('nextRoundBtn').textContent='Yeni Tur Başlat';
+    continueBtn.classList.add('hidden');
     roundOverlay.classList.add('show');
   }
 
@@ -520,8 +577,38 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
     roundTitle.textContent = score>bestAtStart ? 'Yeni rekor! 🎉' : 'Oyun bitti';
     roundSummary.textContent='Doğru cevap serisi: '+score+' · Rekor: '+bests[mode.id];
     $('nextRoundBtn').textContent='Tekrar Oyna';
+    continueBtn.textContent='🎬 Reklam izle, devam et (seri: '+score+')';
+    continueBtn.classList.toggle('hidden', !odulluUygunMu());
     roundOverlay.classList.add('show');
   }
+
+  // --- Ödüllü reklam: sonsuz modda kaybedince kaldığı yerden devam ---
+  const continueBtn=$('continueBtn');
+  function odulluUygunMu(){
+    if(!ads || !mode.endless) return false;
+    if(devamSayisi>=REKLAM.DEVAM_HAKKI || score<REKLAM.DEVAM_MIN_SERI) return false;
+    try{ return ads.isRewardedReady()===true; }catch(e){ return false; }
+  }
+  continueBtn.addEventListener('click',()=>{
+    if(reklamAcik) return;
+    if(!odulluUygunMu()){ continueBtn.classList.add('hidden'); return; }
+    reklamAcik=true;
+    setTimeout(()=>{ reklamAcik=false; }, 180000); // yedek: uygulama hiç haber vermezse ekran kilitli kalmasın
+    window.__elifbaOdul=kazandi=>{
+      window.__elifbaOdul=null; reklamAcik=false;
+      if(kazandi){
+        // Ödül yalnızca reklam sonuna kadar izlendiyse verilir
+        rkYaz(RK.sonOdullu,Date.now());
+        devamSayisi++;
+        roundOverlay.classList.remove('show');
+        streak=score; // yanlış cevap seriyi sıfırlamıştı; kaldığı yerden sürsün
+        qIndex++; nextQuestion();
+      }else{
+        continueBtn.classList.toggle('hidden', !odulluUygunMu());
+      }
+    };
+    try{ ads.showRewarded(); }catch(e){ window.__elifbaOdul(false); }
+  });
 
   // --- Turdan çıkarken / baştan başlarken onay ---
   let confirmAction=null;
@@ -539,26 +626,28 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
   }
   function closeConfirm(){ confirmOverlay.classList.remove('show'); confirmAction=null; }
   function requestLeave(){
-    if(hasProgress()) askConfirm('Turdan çıkılsın mı?','Bu turdaki ilerlemen kaybolacak.','Çık',openModes);
+    if(hasProgress()) askConfirm('Turdan çıkılsın mı?','Bu turdaki ilerlemen kaybolacak.','Çık',()=>reklamliGecis(openModes));
     else openModes();
   }
   function requestRestart(){
-    if(hasProgress()) askConfirm('Baştan başlansın mı?','Bu turdaki ilerlemen kaybolacak.','Baştan başla',newGame);
+    if(hasProgress()) askConfirm('Baştan başlansın mı?','Bu turdaki ilerlemen kaybolacak.','Baştan başla',()=>reklamliGecis(newGame));
     else newGame();
   }
   $('confirmStayBtn').addEventListener('click', closeConfirm);
   $('confirmLeaveBtn').addEventListener('click',()=>{ const action=confirmAction; closeConfirm(); if(action) action(); });
 
   $('resetBtn').addEventListener('click', requestRestart);
-  $('nextRoundBtn').addEventListener('click', newGame);
-  $('overlayModesBtn').addEventListener('click', openModes);
+  // Tur/oyun sonu ekranındaki düğmeler: geçiş reklamı için doğal mola
+  $('nextRoundBtn').addEventListener('click',()=>reklamliGecis(newGame));
+  $('overlayModesBtn').addEventListener('click',()=>reklamliGecis(openModes));
 
   // Android uygulamasındaki geri tuşu önce burayı çağırır.
   // true: sayfa geri tuşunu kendisi halletti; false: ana ekrandayız, uygulama çıkışı sorabilir.
   window.elifbaGeri=function(){
     if(confirmOverlay.classList.contains('show')){ closeConfirm(); return true; }
     if(screens.quiz.classList.contains('active')){
-      if(roundOverlay.classList.contains('show')) openModes(); else requestLeave();
+      if(reklamAcik) return true;
+      if(roundOverlay.classList.contains('show')) reklamliGecis(openModes); else requestLeave();
       return true;
     }
     if(!screens.home.classList.contains('active')){ show('home'); return true; }
