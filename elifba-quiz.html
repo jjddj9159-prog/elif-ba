@@ -53,8 +53,40 @@ body{margin:0; min-height:100%; background:radial-gradient(circle at 50% -10%, v
 .mode-best{font-size:0.72rem; color:var(--ink-dim); font-weight:700; text-align:right; white-space:nowrap;}
 .mode-best b{display:block; color:var(--gold); font-size:1.05rem;}
 
+/* ELİFBA TABLOSU */
+.tabs{display:flex; gap:8px; background:var(--panel); border:1px solid var(--opt-border); border-radius:999px; padding:4px;}
+.tab{flex:1; background:none; border:none; border-radius:999px; padding:10px; color:var(--ink-dim); font-weight:800; font-size:0.95rem; cursor:pointer; font-family:inherit;}
+.tab.active{background:var(--gold); color:#231a02;}
+.table-hint{text-align:center; color:var(--ink-dim); font-size:0.82rem;}
+.letter-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(76px,1fr)); gap:8px; direction:rtl;}
+.l-cell{background:linear-gradient(180deg,var(--opt),#0d1a4a); border:1.5px solid var(--opt-border); border-radius:14px;
+  padding:8px 4px 10px; display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; color:var(--ink); font-family:inherit;}
+.l-cell:active, .l-cell.playing{border-color:var(--gold); background:linear-gradient(180deg,#1d3a8a,#13286a);}
+.l-ar{font-family:"Traditional Arabic","Scheherazade New",Arial,sans-serif; font-size:2.4rem; line-height:1.35; direction:rtl;}
+.l-name{font-size:0.85rem; font-weight:700; color:var(--gold); direction:ltr;}
+.hareke-info{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.h-card{background:var(--panel); border:1px solid var(--opt-border); border-radius:14px; padding:10px; text-align:left; color:var(--ink); cursor:pointer; font-family:inherit;}
+.h-card.playing{border-color:var(--gold);}
+.h-card .h-top{display:flex; align-items:center; justify-content:space-between; gap:6px;}
+.h-card .h-name{color:var(--gold); font-weight:800;}
+.h-card .h-ex{font-family:"Traditional Arabic","Scheherazade New",Arial,sans-serif; font-size:1.9rem; line-height:1.4;}
+.h-card .h-desc{font-size:0.75rem; color:var(--ink-dim); margin-top:2px; line-height:1.35;}
+.h-title{color:var(--gold); font-weight:800; font-size:0.95rem; margin:6px 2px 0;}
+.hareke-table{display:grid; grid-template-columns:1.15fr repeat(4,1fr); gap:4px;}
+.ht-head{font-size:0.7rem; font-weight:800; color:var(--ink-dim); text-align:center; padding:4px 0; letter-spacing:0.03em;}
+.ht-letter{background:var(--panel); border-radius:10px; padding:4px; display:flex; flex-direction:column; align-items:center; justify-content:center;}
+.ht-letter .l-ar{font-size:1.7rem;}
+.ht-letter .ht-sub{font-size:0.65rem; color:var(--ink-dim); text-align:center; line-height:1.2;}
+.ht-cell{background:linear-gradient(180deg,var(--opt),#0d1a4a); border:1px solid var(--opt-border); border-radius:10px; padding:2px 2px 4px;
+  display:flex; flex-direction:column; align-items:center; cursor:pointer; color:var(--ink); font-family:inherit;}
+.ht-cell.playing{border-color:var(--gold);}
+.ht-cell .l-ar{font-size:1.6rem;}
+.ht-cell .ht-read{font-size:0.78rem; font-weight:700; color:var(--gold);}
+.ht-empty{display:flex; align-items:center; justify-content:center; color:var(--ink-dim); font-size:0.8rem;}
+.table-note{margin-top:12px; text-align:center; color:var(--ink-dim); font-size:0.75rem; line-height:1.45;}
+
 /* SETTINGS */
-#settings h1, #quiz h1, #modes h1{margin:0; font-size:1.3rem; font-weight:800; color:var(--gold);}
+#settings h1, #quiz h1, #modes h1, #table h1{margin:0; font-size:1.3rem; font-weight:800; color:var(--gold);}
 .set-row{background:var(--panel); border:1px solid var(--opt-border); border-radius:14px; padding:14px 16px;
   display:flex; align-items:center; justify-content:space-between; gap:10px;}
 .set-row .lbl{font-weight:700; font-size:0.95rem;}
@@ -122,6 +154,7 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
     <div class="logo">ELİFBA<small>HARF BİLGİ YARIŞMASI</small></div>
     <div class="home-btns">
       <button class="btn-primary" id="startBtn">Başla</button>
+      <button class="btn-secondary" id="tableBtn">📖 Elifba Tablosu</button>
       <button class="btn-secondary" id="settingsBtn">⚙ Ayarlar</button>
     </div>
     <div class="home-best">En uzun doğru seri: <b id="homeBest">0</b></div>
@@ -130,6 +163,22 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
   <div class="screen" id="modes">
     <div class="back-row"><button class="icon-btn" id="modesBack">←</button><h1>Mod Seç</h1><span style="width:28px"></span></div>
     <div class="mode-list" id="modeList"></div>
+  </div>
+
+  <div class="screen" id="table">
+    <div class="back-row"><button class="icon-btn" id="tableBack">←</button><h1>Elifba Tablosu</h1><span style="width:28px"></span></div>
+    <div class="tabs">
+      <button class="tab active" id="tabHarf">Harfler</button>
+      <button class="tab" id="tabHareke">Harekeler</button>
+    </div>
+    <div class="table-hint" id="tableHint">Bir harfe dokun, adını dinle</div>
+    <div class="letter-grid" id="harfPanel"></div>
+    <div class="hidden" id="harekePanel">
+      <div class="hareke-info" id="harekeInfo"></div>
+      <div class="h-title">Bütün harflerin harekeli okunuşu</div>
+      <div class="hareke-table" id="harekeTable"></div>
+      <div class="table-note">Okunuşlar elifba kitaplarına göre hazırlandı; bazı harflerde kitaplar arasında farklılık olabilir. Hata görürseniz bize yazın: elifba.uygulama@gmail.com</div>
+    </div>
   </div>
 
   <div class="screen" id="settings">
@@ -293,7 +342,7 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
   const LABELS=['A','B','C','D'];
 
   const $=id=>document.getElementById(id);
-  const screens={home:$('home'),modes:$('modes'),settings:$('settings'),quiz:$('quiz')};
+  const screens={home:$('home'),modes:$('modes'),settings:$('settings'),quiz:$('quiz'),table:$('table')};
   function show(name){Object.values(screens).forEach(s=>s.classList.remove('active')); screens[name].classList.add('active');}
 
   function shuffle(arr){const a=arr.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a;}
@@ -358,8 +407,9 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
     updateHomeBest();
   });
 
-  function speak(text){
-    if(!voiceOn) return;
+  // force: tablodaki gibi kullanıcı özellikle dinlemek için dokunduysa ayardan bağımsız oku
+  function speak(text,force){
+    if(!voiceOn && !force) return;
     try{
       if(!('speechSynthesis' in window)) return;
       window.speechSynthesis.cancel();
@@ -431,6 +481,63 @@ select.rate-select{background:#1a2456; color:var(--ink); border:1px solid var(--
   $('startBtn').addEventListener('click',openModes);
   $('modesBack').addEventListener('click',()=>show('home'));
   $('settingsBtn').addEventListener('click',()=>show('settings'));
+
+  // --- Elifba tablosu (harfler + harekeler; harekeli kısım HAREKELI_VERI tablosundan üretilir) ---
+  let tableBuilt=false;
+  const HAREKE_ACIKLAMA={
+    'Üstün':['بَ','Be','Harfin üstünde eğik çizgi. "e", kalın harflerde "a" okutur.'],
+    'Esre': ['بِ','Bi','Harfin altında eğik çizgi. "i", kalın harflerde "ı" okutur.'],
+    'Ötre': ['بُ','Bü','Harfin üstünde küçük vav. "ü", kalın harflerde "u" okutur.'],
+    'Cezm': [ELIF_USTUN+'بْ','Eb','Harfi sessiz yapar; önündeki harfle birlikte okunur.']
+  };
+  function flash(el){ el.classList.add('playing'); setTimeout(()=>el.classList.remove('playing'),700); }
+  function tapToSpeak(el,text){ el.addEventListener('click',()=>{ speak(text,true); flash(el); }); }
+  function el(tag,cls,html){ const e=document.createElement(tag); e.className=cls; if(html!==undefined) e.innerHTML=html; return e; }
+
+  function buildTable(){
+    const grid=$('harfPanel');
+    LETTERS.forEach(l=>{
+      const c=el('button','l-cell','<span class="l-ar">'+l.ar+'</span><span class="l-name">'+l.name+'</span>');
+      tapToSpeak(c,l.name);
+      grid.appendChild(c);
+    });
+
+    const info=$('harekeInfo');
+    HAREKELER.forEach(h=>{
+      const [ornek,okunus,aciklama]=HAREKE_ACIKLAMA[h.ad];
+      const c=el('button','h-card',
+        '<div class="h-top"><span class="h-name">'+h.ad+'</span><span class="h-ex">'+ornek+'</span></div>'+
+        '<div class="h-desc">'+aciklama+' ('+okunus+')</div>');
+      tapToSpeak(c,h.ad+', '+okunus);
+      info.appendChild(c);
+    });
+
+    const t=$('harekeTable');
+    ['Harf'].concat(HAREKELER.map(h=>h.ad)).forEach(b=>t.appendChild(el('div','ht-head',b)));
+    HAREKELI_VERI.forEach(([harf,harfAdi,kalinlik,...rest])=>{
+      const alt=harfAdi+(kalinlik==='ince' ? '' : '<br>'+kalinlik);
+      t.appendChild(el('div','ht-letter','<span class="l-ar">'+harf+'</span><span class="ht-sub">'+alt+'</span>'));
+      HAREKELER.forEach((h,i)=>{
+        const okunus=rest[i];
+        if(!okunus){ t.appendChild(el('div','ht-empty','—')); return; }
+        const yazi = h.ad==='Cezm' ? ELIF_USTUN+harf+h.isaret : harf+h.isaret;
+        const c=el('button','ht-cell','<span class="l-ar">'+yazi+'</span><span class="ht-read">'+okunus+'</span>');
+        tapToSpeak(c,okunus);
+        t.appendChild(c);
+      });
+    });
+  }
+  function tableTab(harekeler){
+    $('tabHarf').classList.toggle('active',!harekeler);
+    $('tabHareke').classList.toggle('active',harekeler);
+    $('harfPanel').classList.toggle('hidden',harekeler);
+    $('harekePanel').classList.toggle('hidden',!harekeler);
+    $('tableHint').textContent = harekeler ? 'Bir kutuya dokun, okunuşunu dinle' : 'Bir harfe dokun, adını dinle';
+  }
+  $('tableBtn').addEventListener('click',()=>{ if(!tableBuilt){ buildTable(); tableBuilt=true; } tableTab(false); show('table'); });
+  $('tableBack').addEventListener('click',()=>show('home'));
+  $('tabHarf').addEventListener('click',()=>tableTab(false));
+  $('tabHareke').addEventListener('click',()=>tableTab(true));
   $('settingsBack').addEventListener('click',()=>show('home'));
   $('quizHome').addEventListener('click',requestLeave);
 
